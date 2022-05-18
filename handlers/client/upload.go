@@ -42,7 +42,7 @@ func Upload(ctx *gin.Context) {
 		"status":  "ok",
 		"cid":     cid,
 		"url":     fmt.Sprintf("ipfs://%s/%s", cid, file.Filename),
-		"web2url": fmt.Sprintf("https://%s.ipfs.dweb.link/%s", cid, file.Filename),
+		"web2url": fmt.Sprintf("https://%s.ipfs.cf-ipfs.com/%s", cid, file.Filename),
 	})
 
 }
