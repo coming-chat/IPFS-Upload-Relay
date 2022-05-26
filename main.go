@@ -15,12 +15,12 @@ func main() {
 
 	// Initialize routers
 	log.Println("Initializing routers...")
-	r := inits.Routers()
+	e := inits.Routers()
 	log.Println("Routers initialization complete.")
 
 	// Start server
 	log.Println("Starting server...")
-	if err := r.Run(); err != nil {
+	if err := e.Run(); err != nil {
 		log.Fatalln(err)
 	}
 }
