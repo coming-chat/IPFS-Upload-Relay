@@ -54,8 +54,8 @@ func PostJson(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  "ok",
 		"cid":     cid,
-		"url":     fmt.Sprintf("ipfs://%s/%s", cid, tmpFileName),
-		"web2url": fmt.Sprintf("https://%s.ipfs.cf-ipfs.com/%s", cid, tmpFileName),
+		"url":     fmt.Sprintf("ipfs://%s", cid),
+		"web2url": fmt.Sprintf("https://%s.ipfs.cf-ipfs.com", cid),
 	})
 
 }
