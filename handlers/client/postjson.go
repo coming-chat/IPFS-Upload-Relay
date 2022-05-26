@@ -1,12 +1,11 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"os"
 )
 
 func PostJson(ctx *gin.Context) {
@@ -30,18 +29,8 @@ func PostJson(ctx *gin.Context) {
 		return
 	}
 
-	// Save bytes into tmp file
-	tmpFileName := utils.RandomString(16) + ".json"
-	if err = os.WriteFile(tmpFileName, reqBytes, 0644); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"status": "error",
-			"error":  err.Error(),
-		})
-		return
-	}
-
 	// Upload file to IPFS
-	cid, err := ipfsUpload(tmpFileName)
+	cid, err := ipfsUpload(bytes.NewReader(reqBytes), "data.json")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "error",

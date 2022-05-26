@@ -18,8 +18,9 @@ func Upload(ctx *gin.Context) {
 		return
 	}
 
-	// Save tmp file
-	if err = ctx.SaveUploadedFile(file, file.Filename); err != nil {
+	f, err := file.Open()
+	defer f.Close()
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "error",
 			"error":  err.Error(),
@@ -28,7 +29,7 @@ func Upload(ctx *gin.Context) {
 	}
 
 	// Upload file to IPFS
-	cid, err := ipfsUpload(file.Filename)
+	cid, err := ipfsUpload(f, file.Filename)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "error",

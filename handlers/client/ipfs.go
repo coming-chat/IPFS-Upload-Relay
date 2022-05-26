@@ -9,14 +9,13 @@ import (
 	"math/rand"
 	"mime/multipart"
 	"net/http"
-	"os"
 )
 
 type Web3StorageResponse struct {
 	Cid string `json:"cid"`
 }
 
-func ipfsUpload(filename string) (string, error) {
+func ipfsUpload(r io.Reader, filename string) (string, error) {
 	// Prepare
 	bodyBuffer := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuffer)
@@ -26,25 +25,11 @@ func ipfsUpload(filename string) (string, error) {
 		return "", err
 	}
 
-	// Reopen file for IPFS upload
-	f, err := os.Open(filename)
-	//defer f.Close()
-	if err != nil {
-		log.Println("Error opening file:", err)
-		return "", err
-	}
-
 	// Copy file to Writer
-	_, err = io.Copy(fileWriter, f)
+	_, err = io.Copy(fileWriter, r)
 	if err != nil {
 		log.Println("Error copying file to Writer:", err)
 		return "", err
-	}
-
-	// Close and unlink tmp file
-	f.Close()
-	if err = os.Remove(filename); err != nil {
-		log.Println("Unable to remove tmp file", err.Error())
 	}
 
 	// Proxy to IPFS
