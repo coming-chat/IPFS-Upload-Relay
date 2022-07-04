@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/global"
 	"io"
 	"log"
@@ -47,6 +48,10 @@ func ipfsUpload(r io.Reader, filename string) (string, error) {
 		return "", err
 	}
 	log.Println("File upload success", w3sResponse.Cid)
+
+	if w3sResponse.Cid == "" {
+		return "", fmt.Errorf("empty cid, might be an upstream error")
+	}
 
 	// Return response
 	return w3sResponse.Cid, nil
