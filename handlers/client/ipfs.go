@@ -13,7 +13,9 @@ import (
 )
 
 type Web3StorageResponse struct {
-	Cid string `json:"cid"`
+	Cid     string `json:"cid"`
+	Name    string `json:"name"`    // Only on failure
+	Message string `json:"message"` // Only on failure
 }
 
 func ipfsUpload(r io.Reader, filename string) (string, error) {
@@ -50,7 +52,7 @@ func ipfsUpload(r io.Reader, filename string) (string, error) {
 	log.Println("File upload success", w3sResponse.Cid)
 
 	if w3sResponse.Cid == "" {
-		return "", fmt.Errorf("empty cid, might be an upstream error")
+		return "", fmt.Errorf(w3sResponse.Message)
 	}
 
 	// Return response
