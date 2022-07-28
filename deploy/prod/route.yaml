@@ -1,0 +1,14 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ipfs-upload-relay
+  namespace: crossbell
+spec:
+  entryPoints:
+  - web
+  routes:
+  - kind: Rule
+    match: Host(`ipfs-relay.crossbell.io`)
+    services:
+    - name: ipfs-upload-relay
+      port: 8080
