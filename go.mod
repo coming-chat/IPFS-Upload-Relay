@@ -2,7 +2,10 @@ module github.com/NaturalSelectionLabs/IPFS-Upload-Relay
 
 go 1.18
 
-require github.com/gin-gonic/gin v1.7.7
+require (
+	github.com/aws/aws-sdk-go v1.44.82
+	github.com/gin-gonic/gin v1.7.7
+)
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -11,6 +14,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect

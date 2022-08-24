@@ -9,3 +9,6 @@ services:
     environment:
       - MODE=prod
       - W3S_TOKEN=xxx
+      - AWS_ACCESS_KEY_ID=xxx
+      - AWS_SECRET_ACCESS_KEY=xxx
+      - 4EVERLAND_BUCKET=xxx

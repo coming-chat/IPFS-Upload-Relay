@@ -1,4 +1,4 @@
-package client
+package utils
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ type Web3StorageResponse struct {
 	Message string `json:"message"` // Only on failure
 }
 
-func ipfsUpload(r io.Reader, filename string) (string, error) {
+func Upload2W3S(r io.Reader, filename string) (string, error) {
 	// Prepare
 	bodyBuffer := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(bodyBuffer)
