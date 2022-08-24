@@ -31,7 +31,7 @@ spec:
               value: $AWS_ACCESS_KEY_ID
             - name: AWS_SECRET_ACCESS_KEY
               value: $AWS_SECRET_ACCESS_KEY
-            - name: 4EVERLAND_BUCKET
+            - name: FOREVERLAND_BUCKET
               value: csb
           ports:
             - containerPort: 8080

@@ -8,9 +8,9 @@ import (
 
 func ForeverLand() error {
 	var exist bool
-	global.ForeverLand_Bucket, exist = os.LookupEnv("4EVERLAND_BUCKET")
+	global.ForeverLand_Bucket, exist = os.LookupEnv("FOREVERLAND_BUCKET")
 	if !exist {
-		return fmt.Errorf("env virable 4EVERLAND_BUCKET not found")
+		return fmt.Errorf("env virable FOREVERLAND_BUCKET not found")
 	}
 
 	return nil
