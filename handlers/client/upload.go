@@ -50,6 +50,7 @@ func Upload(ctx *gin.Context) {
 	}
 
 	// Also upload to W3S
+	_, _ = f.Seek(0, io.SeekStart)
 	_, _ = utils.Upload2W3S(f, file.Filename)
 
 	// Return response
