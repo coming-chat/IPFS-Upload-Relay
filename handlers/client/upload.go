@@ -32,7 +32,6 @@ func Upload(ctx *gin.Context) {
 	}
 
 	// Upload file to IPFS
-	//cid, err := utils.Upload2W3S(f, file.Filename)
 	fileBuffer := bytes.NewBuffer(nil)
 	if _, err := io.Copy(fileBuffer, f); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -49,6 +48,9 @@ func Upload(ctx *gin.Context) {
 		})
 		return
 	}
+
+	// Also upload to W3S
+	_, _ = utils.Upload2W3S(f, file.Filename)
 
 	// Return response
 	ctx.JSON(http.StatusOK, gin.H{

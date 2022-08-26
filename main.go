@@ -7,11 +7,11 @@ import (
 
 func main() {
 	// Init
-	//log.Println("Initializing Web3Storage Client...")
-	//if err := inits.W3SClient(); err != nil {
-	//	log.Fatalln(err)
-	//}
-	//log.Println("Web3Storage Client initialization complete.")
+	log.Println("Initializing Web3Storage Client...")
+	if err := inits.W3SClient(); err != nil {
+		log.Fatalln(err)
+	}
+	log.Println("Web3Storage Client initialization complete.")
 
 	log.Println("Initializing 4everland client...")
 	if err := inits.ForeverLand(); err != nil {

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/utils"
@@ -30,7 +31,6 @@ func PostJson(ctx *gin.Context) {
 	}
 
 	// Upload file to IPFS
-	// cid, err := utils.Upload2W3S(bytes.NewReader(reqBytes), "data.json")
 	cid, err := utils.Upload2ForeverLand(reqBytes)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -39,6 +39,9 @@ func PostJson(ctx *gin.Context) {
 		})
 		return
 	}
+
+	// Also upload to W3S
+	_, _ = utils.Upload2W3S(bytes.NewReader(reqBytes), "data.json")
 
 	// Return response
 	ctx.JSON(http.StatusOK, gin.H{
