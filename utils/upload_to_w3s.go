@@ -55,6 +55,9 @@ func Upload2W3S(r io.Reader, filename string) (string, error) {
 		return "", fmt.Errorf(w3sResponse.Message)
 	}
 
+	// Request once to ensure file pinned
+	_, _ = (&http.Client{}).Get(fmt.Sprintf("https://w3s.link/ipfs/%s", w3sResponse.Cid))
+
 	// Return response
 	return w3sResponse.Cid, nil
 }

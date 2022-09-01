@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/global"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"log"
+	"net/http"
 	"strings"
 )
 
@@ -79,6 +81,9 @@ func Upload2ForeverLand(fileBytes []byte) (string, error) {
 	} else {
 		cid = *headResp.ETag
 	}
+
+	// Request once to ensure file pinned
+	_, _ = (&http.Client{}).Get(fmt.Sprintf("https://4everland.io/ipfs/%s", cid))
 
 	return strings.ReplaceAll(cid, "\"", ""), nil
 
