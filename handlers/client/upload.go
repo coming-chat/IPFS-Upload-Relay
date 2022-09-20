@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/utils"
 	"github.com/gin-gonic/gin"
@@ -22,7 +21,6 @@ func Upload(ctx *gin.Context) {
 	}
 
 	f, err := file.Open()
-	defer f.Close()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "error",
@@ -30,17 +28,10 @@ func Upload(ctx *gin.Context) {
 		})
 		return
 	}
+	defer f.Close()
 
 	// Upload file to IPFS
-	fileBuffer := bytes.NewBuffer(nil)
-	if _, err := io.Copy(fileBuffer, f); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"status": "error",
-			"error":  err.Error(),
-		})
-		return
-	}
-	cid, err := utils.Upload2ForeverLand(fileBuffer.Bytes())
+	cid, err := utils.Upload2ForeverLand(f)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "error",

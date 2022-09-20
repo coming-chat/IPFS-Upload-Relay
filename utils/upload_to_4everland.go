@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -10,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -34,14 +34,31 @@ func prepare() (*s3.S3, error) {
 	return s3.New(sess), nil
 }
 
-func Upload2ForeverLand(fileBytes []byte) (string, error) {
+func Upload2ForeverLand(r io.ReadSeeker) (string, error) {
 
 	// RandKey: file content hash
 
-	fileHashBytes := sha256.Sum256(fileBytes)
-	fileHash := hex.EncodeToString(fileHashBytes[:])
+	buf := make([]byte, 4*1024*1024) // 4MB Cut
+	h := sha256.New()
+
+	for {
+		bytesRead, err := r.Read(buf)
+		if bytesRead > 0 {
+			h.Write(buf[:bytesRead])
+		}
+		if err != nil {
+			if err != io.EOF {
+				return "", err
+			}
+			break
+		}
+	}
+
+	fileHash := hex.EncodeToString(h.Sum(nil))
 
 	log.Println("New file upload request with hash: ", fileHash)
+
+	_, _ = r.Seek(0, io.SeekStart)
 
 	svc, err := prepare()
 	if err != nil {
@@ -61,7 +78,7 @@ func Upload2ForeverLand(fileBytes []byte) (string, error) {
 		case "NotFound":
 			// Upload file
 			_, err := svc.PutObject(&s3.PutObjectInput{
-				Body:   bytes.NewReader(fileBytes),
+				Body:   r,
 				Bucket: &global.ForeverLand_Bucket,
 				Key:    aws.String(fileHash),
 			})

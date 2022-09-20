@@ -31,7 +31,7 @@ func PostJson(ctx *gin.Context) {
 	}
 
 	// Upload file to IPFS
-	cid, err := utils.Upload2ForeverLand(reqBytes)
+	cid, err := utils.Upload2ForeverLand(bytes.NewReader(reqBytes))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"status": "error",
