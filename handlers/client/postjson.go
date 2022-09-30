@@ -40,9 +40,6 @@ func PostJson(ctx *gin.Context) {
 		return
 	}
 
-	// Also upload to W3S
-	_, _ = utils.Upload2W3S(bytes.NewReader(reqBytes), "data.json")
-
 	// Return response
 	ctx.JSON(http.StatusOK, gin.H{
 		"status":  "ok",

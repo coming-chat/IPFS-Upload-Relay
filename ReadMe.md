@@ -4,7 +4,6 @@
 ## Environment Variables
 
 - `MODE`: `production` or `development`
-- `W3S_TOKEN`: web3.storage token
 
 ## Endpoints
 

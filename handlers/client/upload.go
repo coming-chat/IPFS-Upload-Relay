@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/utils"
 	"github.com/gin-gonic/gin"
-	"io"
 	"net/http"
 )
 
@@ -39,10 +38,6 @@ func Upload(ctx *gin.Context) {
 		})
 		return
 	}
-
-	// Also upload to W3S
-	_, _ = f.Seek(0, io.SeekStart)
-	_, _ = utils.Upload2W3S(f, file.Filename)
 
 	// Return response
 	ctx.JSON(http.StatusOK, gin.H{
