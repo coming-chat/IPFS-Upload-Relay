@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/global"
 	"github.com/aws/aws-sdk-go/aws"
@@ -38,27 +36,9 @@ func Upload2ForeverLand(r io.ReadSeeker) (string, error) {
 
 	// RandKey: file content hash
 
-	buf := make([]byte, 4*1024*1024) // 4MB Cut
-	h := sha256.New()
-
-	for {
-		bytesRead, err := r.Read(buf)
-		if bytesRead > 0 {
-			h.Write(buf[:bytesRead])
-		}
-		if err != nil {
-			if err != io.EOF {
-				return "", err
-			}
-			break
-		}
-	}
-
-	fileHash := hex.EncodeToString(h.Sum(nil))
+	fileHash := CalcFileHash(r)
 
 	log.Println("New file upload request with hash: ", fileHash)
-
-	_, _ = r.Seek(0, io.SeekStart)
 
 	svc, err := prepare()
 	if err != nil {
