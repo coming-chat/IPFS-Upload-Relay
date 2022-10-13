@@ -12,5 +12,5 @@ func Routers(g *gin.RouterGroup) {
 	r.PUT("/upload", client.UploadFile)
 	r.POST("/json", client.UploadJson)
 	r.PUT("/json", client.UploadJson)
-	r.POST("/video", client.UploadVideo)
+	r.POST("/y2b", client.UploadY2BVideo)
 }
