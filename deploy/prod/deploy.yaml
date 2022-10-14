@@ -24,13 +24,9 @@ spec:
         - image: $IMAGE_TAG_RELEASE
           imagePullPolicy: Always
           name: ipfs-upload-relay
-          env:
-            - name: AWS_ACCESS_KEY_ID
-              value: $AWS_ACCESS_KEY_ID
-            - name: AWS_SECRET_ACCESS_KEY
-              value: $AWS_SECRET_ACCESS_KEY
-            - name: FOREVERLAND_BUCKET
-              value: csb
+          envFrom:
+            - secretRef:
+                name: ipfs-upload-relay
           ports:
             - containerPort: 8080
               protocol: TCP
