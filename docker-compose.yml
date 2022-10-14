@@ -3,7 +3,10 @@ services:
   app:
     restart: always
     build: .
-    container_name: IPFS-Upload-Relay
+    container_name: IPFS-Upload-Relay_App
+    networks:
+      - internal_network
+      - external_network
     ports:
       - 127.0.0.1:8080:8080
     environment:
@@ -11,3 +14,15 @@ services:
       - AWS_ACCESS_KEY_ID=xxx
       - AWS_SECRET_ACCESS_KEY=xxx
       - FOREVERLAND_BUCKET=xxx
+      - REDIS_CONNECTION_STRING=redis://redis:6379/0
+  redis:
+    restart: always
+    image: redis:alpine
+    container_name: IPFS-Upload-Relay_Redis
+    networks:
+      - internal_network
+
+networks:
+  internal_network:
+    internal: true
+  external_network:
