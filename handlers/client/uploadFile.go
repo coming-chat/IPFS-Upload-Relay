@@ -6,12 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+	"time"
 )
 
 // UploadFile : Proxy upload request to IPFS
 func UploadFile(ctx *gin.Context) {
 	// Receive file from context
 	log.Print("New file upload request received")
+
+	timeUploadStart := time.Now()
 
 	file, err := ctx.FormFile("file")
 	if err != nil {
@@ -23,6 +26,8 @@ func UploadFile(ctx *gin.Context) {
 		})
 		return
 	}
+
+	timeUpload2Relay := time.Now()
 
 	log.Print("Opening form file...")
 	f, err := file.Open()
@@ -50,6 +55,8 @@ func UploadFile(ctx *gin.Context) {
 		return
 	}
 
+	timeUpload2IPFS := time.Now()
+
 	log.Printf("File uploaded successfully with cid: %s", cid)
 	// Return response
 	ctx.JSON(http.StatusOK, gin.H{
@@ -58,5 +65,11 @@ func UploadFile(ctx *gin.Context) {
 		"url":     fmt.Sprintf("ipfs://%s", cid),
 		"web2url": utils.AddGateway(cid),
 	})
+
+	log.Printf(
+		"Time consumption: %dms to relay, %dms to IPFS",
+		timeUpload2Relay.Sub(timeUploadStart).Microseconds(),
+		timeUpload2IPFS.Sub(timeUpload2Relay).Microseconds(),
+	)
 
 }
