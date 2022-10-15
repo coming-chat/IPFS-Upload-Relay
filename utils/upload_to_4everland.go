@@ -80,7 +80,7 @@ func Upload2ForeverLand(r io.ReadSeeker) (string, error) {
 	}
 
 	// Request once to ensure file pinned
-	_, _ = (&http.Client{}).Get(fmt.Sprintf("https://4everland.io/ipfs/%s", cid))
+	go (&http.Client{}).Get(fmt.Sprintf("https://4everland.io/ipfs/%s", cid))
 
 	return strings.ReplaceAll(cid, "\"", ""), nil
 
