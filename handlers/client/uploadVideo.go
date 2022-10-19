@@ -7,7 +7,6 @@ import (
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/global"
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/kkdai/youtube/v2"
 	"io"
 	"log"
 	"net/http"
@@ -15,17 +14,13 @@ import (
 	"time"
 )
 
-var (
-	y2bCli = youtube.Client{}
-)
-
 /******************** Settings ********************/
 
 const (
-	Y2BVideoDownloadProcessingRecordExpires = 1 * time.Hour
-	Y2BVideoDownloadFinishedRecordExpires   = 24 * time.Hour
-	Y2BVideoDownloadStatusRedisKeyTemplate  = "iur:y2b:%s"
-	Y2BVideoDownloadTempFilenameTemplate    = "tmp-y2b-%s-%d"
+	VideoDownloadProcessingRecordExpires = 1 * time.Hour
+	VideoDownloadFinishedRecordExpires   = 24 * time.Hour
+	VideoDownloadStatusRedisKeyTemplate  = "iur:video:%s"
+	VideoDownloadTempFilenameTemplate    = "tmp-video-%d"
 )
 
 /**************************************************/
@@ -40,14 +35,14 @@ const (
 	VIDEO_STATUS_UPLOADING_TO_IPFS            = 4
 )
 
-type Y2BVideoUploadStatus struct {
+type VideoUploadStatus struct {
 	Status    StatusCode `json:"status"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	Message   string     `json:"message"`
 	CID       string     `json:"cid"`
 }
 
-func UploadY2BVideo(ctx *gin.Context) {
+func UploadVideo(ctx *gin.Context) {
 	// Use link to upload
 	log.Print("New video upload request received")
 
@@ -67,19 +62,10 @@ func UploadY2BVideo(ctx *gin.Context) {
 
 	log.Print("Extracting video ID...")
 	// Download
-	videoID, err := youtube.ExtractVideoID(videoUrl)
-	if err != nil {
-		errMsg := fmt.Sprintf("Failed to get video ID with error: %s", err.Error())
-		log.Print(errMsg)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "error",
-			"message": errMsg,
-		})
-		return
-	}
+	videoID := videoUrl
 
 	// Check status in cache
-	status, exist, err := getY2BUploadStatus(videoID)
+	status, exist, err := getVideoUploadStatus(videoID)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to get video (%s) status info with error: %s", videoID, err.Error())
 		log.Print(errMsg)
@@ -93,7 +79,7 @@ func UploadY2BVideo(ctx *gin.Context) {
 	if !exist {
 		// Create new work
 		go func() {
-			startNewY2BUploadJob(videoID)
+			startNewVideoUploadJob(videoID)
 		}()
 		ctx.JSON(http.StatusCreated, gin.H{
 			"status": "ok",
@@ -148,53 +134,28 @@ func UploadY2BVideo(ctx *gin.Context) {
 
 }
 
-func startNewY2BUploadJob(videoID string) {
+func startNewVideoUploadJob(videoID string) {
 
 	log.Printf("Start downloading video (%s)...", videoID)
 
-	// Stage 1: Get video info
-	setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
-		Status: VIDEO_STATUS_LOADING_METADATA,
-	}, Y2BVideoDownloadProcessingRecordExpires)
-
-	video, err := y2bCli.GetVideo(videoID)
-	if err != nil {
-		errMsg := fmt.Sprintf("Failed to get video info with error: %s", err.Error())
-		log.Print(errMsg)
-		setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
-			Status:  VIDEO_STATUS_FAILED,
-			Message: errMsg,
-		}, Y2BVideoDownloadFinishedRecordExpires)
-		return
-	}
-
-	formats := video.Formats.WithAudioChannels()
-	stream, _, err := y2bCli.GetStream(video, &formats[0])
-	if err != nil {
-		errMsg := fmt.Sprintf("Failed to create video stream with error: %s", err.Error())
-		log.Print(errMsg)
-		setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
-			Status:  VIDEO_STATUS_FAILED,
-			Message: errMsg,
-		}, Y2BVideoDownloadFinishedRecordExpires)
-		return
-	}
-
 	// Stage 2: Download from Y2B
-	setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
+
+	// youtube-dl -o tmpfile https://...
+
+	setY2BUploadStatus(videoID, &VideoUploadStatus{
 		Status: VIDEO_STATUS_DOWNLOADING,
-	}, Y2BVideoDownloadProcessingRecordExpires)
+	}, VideoDownloadProcessingRecordExpires)
 
 	// Create tmp file
-	filename := fmt.Sprintf(Y2BVideoDownloadTempFilenameTemplate, video.ID, time.Now().UnixMicro())
+	filename := fmt.Sprintf(VideoDownloadTempFilenameTemplate, time.Now().UnixMicro())
 	tmpFileW, err := os.Create(filename)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to create tmp file with error: %s", err.Error())
 		log.Print(errMsg)
-		setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
+		setY2BUploadStatus(videoID, &VideoUploadStatus{
 			Status:  VIDEO_STATUS_FAILED,
 			Message: errMsg,
-		}, Y2BVideoDownloadFinishedRecordExpires)
+		}, VideoDownloadFinishedRecordExpires)
 		return
 	}
 
@@ -206,28 +167,28 @@ func startNewY2BUploadJob(videoID string) {
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to download video with error: %s", err.Error())
 		log.Print(errMsg)
-		setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
+		setY2BUploadStatus(videoID, &VideoUploadStatus{
 			Status:  VIDEO_STATUS_FAILED,
 			Message: errMsg,
-		}, Y2BVideoDownloadFinishedRecordExpires)
+		}, VideoDownloadFinishedRecordExpires)
 		return
 	}
 
 	// Stage 3: Upload to IPFS
 
-	setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
+	setY2BUploadStatus(videoID, &VideoUploadStatus{
 		Status: VIDEO_STATUS_UPLOADING_TO_IPFS,
-	}, Y2BVideoDownloadProcessingRecordExpires)
+	}, VideoDownloadProcessingRecordExpires)
 
 	// Reopen to read
 	tmpFileR, err := os.Open(filename)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to open tmp file with error: %s", err.Error())
 		log.Print(errMsg)
-		setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
+		setY2BUploadStatus(videoID, &VideoUploadStatus{
 			Status:  VIDEO_STATUS_FAILED,
 			Message: errMsg,
-		}, Y2BVideoDownloadFinishedRecordExpires)
+		}, VideoDownloadFinishedRecordExpires)
 		return
 	}
 
@@ -238,27 +199,27 @@ func startNewY2BUploadJob(videoID string) {
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())
 		log.Print(errMsg)
-		setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
+		setY2BUploadStatus(videoID, &VideoUploadStatus{
 			Status:  VIDEO_STATUS_FAILED,
 			Message: errMsg,
-		}, Y2BVideoDownloadFinishedRecordExpires)
+		}, VideoDownloadFinishedRecordExpires)
 		return
 	}
 
 	// Save result
 
 	log.Printf("File uploaded successfully with cid: %s", cid)
-	setY2BUploadStatus(videoID, &Y2BVideoUploadStatus{
+	setY2BUploadStatus(videoID, &VideoUploadStatus{
 		Status: VIDEO_STATUS_UPLOAD_SUCCEED,
 		CID:    cid,
-	}, Y2BVideoDownloadFinishedRecordExpires)
+	}, VideoDownloadFinishedRecordExpires)
 }
 
 func buildCacheKey(videoID string) string {
-	return fmt.Sprintf(Y2BVideoDownloadStatusRedisKeyTemplate, videoID)
+	return fmt.Sprintf(VideoDownloadStatusRedisKeyTemplate, videoID)
 }
 
-func setY2BUploadStatus(videoID string, status *Y2BVideoUploadStatus, expires time.Duration) {
+func setY2BUploadStatus(videoID string, status *VideoUploadStatus, expires time.Duration) {
 	cacheKey := buildCacheKey(videoID)
 
 	status.UpdatedAt = time.Now()
@@ -272,7 +233,7 @@ func setY2BUploadStatus(videoID string, status *Y2BVideoUploadStatus, expires ti
 	global.Redis.Set(context.Background(), cacheKey, statusBytes, expires)
 }
 
-func getY2BUploadStatus(videoID string) (*Y2BVideoUploadStatus, bool, error) {
+func getVideoUploadStatus(videoID string) (*VideoUploadStatus, bool, error) {
 	cacheKey := buildCacheKey(videoID)
 
 	// Check if exist
@@ -290,7 +251,7 @@ func getY2BUploadStatus(videoID string) (*Y2BVideoUploadStatus, bool, error) {
 	}
 
 	// Parse
-	var status Y2BVideoUploadStatus
+	var status VideoUploadStatus
 	if err = json.Unmarshal(statusBytes, &status); err != nil {
 		return nil, true, err // Exist, but cannot be unmarshalled
 	}
