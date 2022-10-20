@@ -32,6 +32,7 @@ type StatusCode string
 const (
 	VIDEO_STATUS_UPLOAD_SUCCEED    StatusCode = "succeed"
 	VIDEO_STATUS_FAILED                       = "failed"
+	VIDEO_STATUS_CREATED                      = "created"
 	VIDEO_STATUS_DOWNLOADING                  = "downloading"
 	VIDEO_STATUS_UPLOADING_TO_IPFS            = "uploading to IPFS"
 )
@@ -54,8 +55,8 @@ func UploadVideo(ctx *gin.Context) {
 		errMsg := "Empty or invalid URL"
 		log.Print(errMsg)
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"message": errMsg,
+			"status": "error",
+			"error":  errMsg,
 		})
 		return
 	}
@@ -66,8 +67,8 @@ func UploadVideo(ctx *gin.Context) {
 		errMsg := fmt.Sprintf("Failed to get video (%s) status info with error: %s", videoUrl, err.Error())
 		log.Print(errMsg)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "error",
-			"message": errMsg,
+			"status": "error",
+			"error":  errMsg,
 		})
 		return
 	}
@@ -78,8 +79,8 @@ func UploadVideo(ctx *gin.Context) {
 			startNewVideoUploadJob(videoUrl)
 		}()
 		ctx.JSON(http.StatusCreated, gin.H{
-			"status": "ok",
-			"error":  fmt.Sprintf("New upload work for video (%s) created, please check later.", videoUrl),
+			"status":  VIDEO_STATUS_CREATED,
+			"message": fmt.Sprintf("New upload work for video (%s) created, please check later.", videoUrl),
 		})
 	} else {
 		// Report work status
@@ -100,7 +101,7 @@ func UploadVideo(ctx *gin.Context) {
 		case VIDEO_STATUS_FAILED:
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"status":    "error",
-				"message":   status.Message,
+				"error":     status.Message,
 				"updatedAt": status.UpdatedAt,
 			})
 			return
