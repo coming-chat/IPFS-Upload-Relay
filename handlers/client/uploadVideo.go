@@ -37,10 +37,12 @@ const (
 )
 
 type VideoUploadStatus struct {
-	Status    StatusCode `json:"status"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	Message   string     `json:"message"`
-	CID       string     `json:"cid"`
+	Status      StatusCode `json:"status"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	Message     string     `json:"message"`
+	CID         string     `json:"cid"`
+	FileSize    int64      `json:"file_size"`
+	ContentType string     `json:"content_type"`
 }
 
 func UploadVideo(ctx *gin.Context) {
@@ -87,11 +89,13 @@ func UploadVideo(ctx *gin.Context) {
 		case VIDEO_STATUS_UPLOAD_SUCCEED:
 			// Return response
 			ctx.JSON(http.StatusOK, gin.H{
-				"status":    "ok",
-				"cid":       status.CID,
-				"url":       fmt.Sprintf("ipfs://%s", status.CID),
-				"web2url":   utils.AddGateway(status.CID),
-				"updatedAt": status.UpdatedAt,
+				"status":      "ok",
+				"cid":         status.CID,
+				"url":         fmt.Sprintf("ipfs://%s", status.CID),
+				"web2url":     utils.AddGateway(status.CID),
+				"updatedAt":   status.UpdatedAt,
+				"fileSize":    status.FileSize,
+				"contentType": status.ContentType,
 			})
 			return
 
@@ -176,7 +180,7 @@ func startNewVideoUploadJob(videoUrl string) {
 
 	log.Print("Uploading file to IPFS...")
 	// UploadFile file to IPFS
-	cid, err := utils.Upload2ForeverLand(tmpFileR)
+	cid, fSize, cType, err := utils.Upload2ForeverLand(tmpFileR)
 	_ = tmpFileR.Close() // Close opened file
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())
@@ -192,8 +196,10 @@ func startNewVideoUploadJob(videoUrl string) {
 
 	log.Printf("File uploaded successfully with cid: %s", cid)
 	setUploadStatus(videoUrl, &VideoUploadStatus{
-		Status: VIDEO_STATUS_UPLOAD_SUCCEED,
-		CID:    cid,
+		Status:      VIDEO_STATUS_UPLOAD_SUCCEED,
+		CID:         cid,
+		FileSize:    fSize,
+		ContentType: cType,
 	}, VideoDownloadFinishedRecordExpires)
 }
 
