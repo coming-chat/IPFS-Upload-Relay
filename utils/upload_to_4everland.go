@@ -32,7 +32,7 @@ func prepare() (*s3.S3, error) {
 	return s3.New(sess), nil
 }
 
-func Upload2ForeverLand(r io.ReadSeeker) (string, int64, string, error) {
+func Upload2ForeverLand(r io.ReadSeeker) (string, int64, error) {
 
 	// RandKey: file content hash
 
@@ -42,14 +42,13 @@ func Upload2ForeverLand(r io.ReadSeeker) (string, int64, string, error) {
 
 	svc, err := prepare()
 	if err != nil {
-		return "", -1, "", err
+		return "", -1, err
 	}
 
 	// Prepare CID
 	var (
-		cid         string
-		filesize    int64
-		contentType string
+		cid      string
+		filesize int64
 	)
 
 	// Check if already exists
@@ -67,7 +66,7 @@ func Upload2ForeverLand(r io.ReadSeeker) (string, int64, string, error) {
 				Key:    aws.String(fileHash),
 			})
 			if err != nil {
-				return "", -1, "", err
+				return "", -1, err
 			} else {
 				// cid = *uploadResp.ETag // Unable to handle here, need another head
 				headResp, _ := svc.HeadObject(&s3.HeadObjectInput{
@@ -76,20 +75,18 @@ func Upload2ForeverLand(r io.ReadSeeker) (string, int64, string, error) {
 				})
 				cid = *headResp.ETag
 				filesize = *headResp.ContentLength
-				contentType = *headResp.ContentType
 			}
 		default:
-			return "", -1, "", err
+			return "", -1, err
 		}
 	} else {
 		cid = *headResp.ETag
 		filesize = *headResp.ContentLength
-		contentType = *headResp.ContentType
 	}
 
 	// Request once to ensure file pinned
 	go (&http.Client{}).Get(fmt.Sprintf("https://4everland.io/ipfs/%s", cid))
 
-	return strings.ReplaceAll(cid, "\"", ""), filesize, contentType, nil
+	return strings.ReplaceAll(cid, "\"", ""), filesize, nil
 
 }

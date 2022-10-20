@@ -44,7 +44,7 @@ func UploadFile(ctx *gin.Context) {
 
 	log.Print("Uploading file to IPFS...")
 	// UploadFile file to IPFS
-	cid, fSize, cType, err := utils.Upload2ForeverLand(f)
+	cid, fSize, err := utils.Upload2ForeverLand(f)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())
 		log.Print(errMsg)
@@ -60,12 +60,11 @@ func UploadFile(ctx *gin.Context) {
 	log.Printf("File uploaded successfully with cid: %s", cid)
 	// Return response
 	ctx.JSON(http.StatusOK, gin.H{
-		"status":      "ok",
-		"cid":         cid,
-		"url":         fmt.Sprintf("ipfs://%s", cid),
-		"web2url":     utils.AddGateway(cid),
-		"fileSize":    fSize,
-		"contentType": cType,
+		"status":   "ok",
+		"cid":      cid,
+		"url":      fmt.Sprintf("ipfs://%s", cid),
+		"web2url":  utils.AddGateway(cid),
+		"fileSize": fSize,
 	})
 
 	log.Printf(
