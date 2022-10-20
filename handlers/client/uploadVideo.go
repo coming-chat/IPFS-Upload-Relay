@@ -44,8 +44,6 @@ type VideoUploadStatus struct {
 }
 
 func UploadVideo(ctx *gin.Context) {
-	// Use link to upload
-	log.Print("New video upload request received")
 
 	log.Print("Validating URL ...")
 	// POST /video?url=xxxxx
@@ -60,9 +58,6 @@ func UploadVideo(ctx *gin.Context) {
 		})
 		return
 	}
-
-	log.Print("Extracting video ID...")
-	// Download
 
 	// Check status in cache
 	status, exist, err := getVideoUploadStatus(videoUrl)
