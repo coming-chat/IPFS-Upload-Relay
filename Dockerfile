@@ -21,7 +21,9 @@ RUN go mod download
 # Build image
 RUN go build .
 
-FROM alpine:latest AS Runner
+FROM python:alpine AS Runner
+
+# We need python for youtube-dl
 
 WORKDIR /app
 

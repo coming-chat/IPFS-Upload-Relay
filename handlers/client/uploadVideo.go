@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -139,14 +140,25 @@ func startNewVideoUploadJob(videoUrl string) {
 	defer os.Remove(filename)
 
 	// Download video
+	var (
+		outBuf bytes.Buffer
+		errBuf bytes.Buffer
+	)
+
 	dlCmd := exec.Command("./youtube-dl", "-o", filename, videoUrl)
+	dlCmd.Stdout = &outBuf
+	dlCmd.Stderr = &errBuf
 	if err := dlCmd.Run(); err != nil {
 		log.Printf("Failed to download video %s with error: %v", videoUrl, err)
+		log.Printf(errBuf.String())
 		setUploadStatus(videoUrl, &VideoUploadStatus{
 			Status:  VIDEO_STATUS_FAILED,
 			Message: err.Error(),
 		}, VideoDownloadFinishedRecordExpires)
 		return
+	} else {
+		log.Printf("Video %s download successfully", videoUrl)
+		log.Printf(outBuf.String())
 	}
 
 	// Stage 2: Upload to IPFS
