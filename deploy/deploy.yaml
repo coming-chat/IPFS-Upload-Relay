@@ -49,6 +49,8 @@ spec:
               port: 8080
             initialDelaySeconds: 40
             periodSeconds: 20
+      imagePullSecrets:
+        - name: comingweb3-registry-secret
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
