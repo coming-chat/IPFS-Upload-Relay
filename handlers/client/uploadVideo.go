@@ -179,7 +179,7 @@ func startNewVideoUploadJob(videoUrl string) {
 
 	log.Print("Uploading file to IPFS...")
 	// UploadFile file to IPFS
-	cid, fSize, err := utils.Upload2ForeverLand(tmpFileR)
+	cid, fSize, err := utils.UploadToIpfs(tmpFileR)
 	_ = tmpFileR.Close() // Close opened file
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())

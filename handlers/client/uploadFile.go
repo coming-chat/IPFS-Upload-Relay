@@ -44,7 +44,7 @@ func UploadFile(ctx *gin.Context) {
 
 	log.Print("Uploading file to IPFS...")
 	// UploadFile file to IPFS
-	cid, fSize, err := utils.Upload2ForeverLand(f)
+	cid, fSize, err := utils.UploadToIpfs(f)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())
 		log.Print(errMsg)
