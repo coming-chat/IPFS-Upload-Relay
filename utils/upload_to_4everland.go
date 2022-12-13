@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var (
@@ -21,8 +22,9 @@ func prepare() (*s3.S3, error) {
 	if sess == nil {
 		var err error
 		sess, err = session.NewSession(&aws.Config{
-			Endpoint: aws.String("https://endpoint.4everland.co/"),
-			Region:   aws.String("us-west-1"),
+			Endpoint: aws.String("https://s3.us-east-2.amazonaws.com/coming-upload/"),
+			Region:   aws.String("us-east-2"),
+			LogLevel: aws.LogLevel(aws.LogDebugWithSigning),
 		})
 		if err != nil {
 			return nil, err
@@ -69,23 +71,31 @@ func Upload2ForeverLand(r io.ReadSeeker) (string, int64, error) {
 				return "", -1, err
 			} else {
 				// cid = *uploadResp.ETag // Unable to handle here, need another head
-				headResp, _ := svc.HeadObject(&s3.HeadObjectInput{
-					Bucket: &global.ForeverLand_Bucket,
-					Key:    aws.String(fileHash),
-				})
-				cid = *headResp.ETag
-				filesize = *headResp.ContentLength
+				for i := 0; i < 5; i++ {
+					headResp, _ := svc.HeadObject(&s3.HeadObjectInput{
+						Bucket: &global.ForeverLand_Bucket,
+						Key:    aws.String(fileHash),
+					})
+					if headResp.Metadata != nil {
+						cid = *headResp.Metadata["Ipfs-Cid"]
+						filesize = *headResp.ContentLength
+						break
+					}
+					time.Sleep(1000 * time.Millisecond)
+				}
 			}
 		default:
 			return "", -1, err
 		}
 	} else {
-		cid = *headResp.ETag
+		if headResp.Metadata != nil {
+			cid = *headResp.Metadata["Ipfs-Cid"]
+		}
 		filesize = *headResp.ContentLength
 	}
 
 	// Request once to ensure file pinned
-	go (&http.Client{}).Get(fmt.Sprintf("https://4everland.io/ipfs/%s", cid))
+	go (&http.Client{}).Get(fmt.Sprintf("https://ipfs-node.coming.chat/ipfs/%s", cid))
 
 	return strings.ReplaceAll(cid, "\"", ""), filesize, nil
 
