@@ -1,7 +1,14 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 func AddGateway(cid string) string {
-	return fmt.Sprintf("https://4everland.io/ipfs/%s", cid)
+	ipfsUrl, exist := os.LookupEnv("IPFS_URL")
+	if !exist {
+		panic("IPFS_URL is not exist")
+	}
+	return fmt.Sprintf(ipfsUrl, cid)
 }
