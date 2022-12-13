@@ -21,7 +21,7 @@ RUN go mod download
 # Build image
 RUN go build .
 
-FROM python:alpine AS Runner
+FROM alpine AS Runner
 
 # We need python for youtube-dl
 
