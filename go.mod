@@ -6,6 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.82
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis/v9 v9.0.0-beta.3
+	github.com/ipfs/go-ipfs-api v0.3.0
 )
 
 require (
@@ -21,7 +22,6 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/ipfs/go-cid v0.0.7 // indirect
-	github.com/ipfs/go-ipfs-api v0.3.0 // indirect
 	github.com/ipfs/go-ipfs-files v0.0.9 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
