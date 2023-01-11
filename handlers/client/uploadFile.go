@@ -1,11 +1,14 @@
 package client
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/utils"
 	"github.com/gin-gonic/gin"
+	"io"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -44,8 +47,45 @@ func UploadFile(ctx *gin.Context) {
 
 	log.Print("Uploading file to IPFS...")
 	// UploadFile file to IPFS
-	cid, fSize, err := utils.UploadToAwsS3(f)
+	var (
+		wg           = sync.WaitGroup{}
+		err1, err2   error
+		cidIpfs, cid string
+		fSize        int64
+	)
+	wg.Add(2)
+	fileBuf, err := io.ReadAll(f)
 	if err != nil {
+		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())
+		log.Print(errMsg)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status": "error",
+			"error":  errMsg,
+		})
+		return
+	}
+	_, _ = f.Seek(0, io.SeekStart)
+	go func() {
+		cidIpfs, _, err1 = utils.UploadToIpfs(bytes.NewReader(fileBuf))
+		wg.Done()
+	}()
+	go func() {
+		cid, fSize, err2 = utils.UploadToAwsS3(f)
+		wg.Done()
+	}()
+
+	wg.Wait()
+	if err1 != nil || err2 != nil {
+		errMsg := fmt.Sprintf("Failed to upload file to IPFS")
+		log.Print(errMsg)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status": "error",
+			"error":  errMsg,
+		})
+		return
+	}
+
+	if cidIpfs != cid {
 		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())
 		log.Print(errMsg)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
