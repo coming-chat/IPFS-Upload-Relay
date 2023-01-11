@@ -1,22 +1,17 @@
 package utils
 
 import (
-	"github.com/ipfs/go-cid"
-	"github.com/multiformats/go-multihash"
+	"bytes"
+	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/global"
+	ipfs "github.com/ipfs/go-ipfs-api"
 )
 
 func GetIPFSCid(file []byte) (string, error) {
-	p := cid.Prefix{
-		Version:  1,                  // 自定义选择版本 取值0 或者  1
-		Codec:    cid.Raw,            // prtobuf
-		MhType:   multihash.SHA2_256, // sha2-256
-		MhLength: multihash.DefaultLengths[multihash.SHA2_256],
-	}
-
-	fileCid, err := p.Sum(file)
+	shell := ipfs.NewShell(global.IPFS_URL)
+	cid, err := shell.Add(bytes.NewReader(file), ipfs.CidVersion(1), ipfs.OnlyHash(true))
 	if err != nil {
 		return "", err
 	}
 
-	return fileCid.String(), nil
+	return cid, nil
 }
