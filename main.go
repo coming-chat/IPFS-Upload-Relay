@@ -11,6 +11,10 @@ func main() {
 	if err := inits.ForeverLand(); err != nil {
 		log.Fatalln(err)
 	}
+	log.Println("Initializing AwsS3 client...")
+	if err := inits.AwsS3(); err != nil {
+		log.Fatalln(err)
+	}
 	log.Println("4everland initialization complete.")
 
 	// Init redis
