@@ -15,6 +15,10 @@ func main() {
 	if err := inits.AwsS3(); err != nil {
 		log.Fatalln(err)
 	}
+	log.Println("Initializing Ipfs client...")
+	if err := inits.Ipfs(); err != nil {
+		log.Fatalln(err)
+	}
 	log.Println("4everland initialization complete.")
 
 	// Init redis
