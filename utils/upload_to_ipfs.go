@@ -1,36 +1,44 @@
 package utils
 
-//
-//import (
-//	"context"
-//	shell "github.com/ipfs/go-ipfs-api"
-//	files "github.com/ipfs/go-ipfs-files"
-//	"io"
-//	"os"
-//	"strings"
-//)
-//
-//func UploadToIpfs(r io.ReadSeeker) (string, int64, error) {
-//	ipfsUploadUrl, exist := os.LookupEnv("IPFS_UPLOAD_URL")
-//	if !exist {
-//		panic("IPFS_UPLOAD_URL is not exist")
-//	}
-//	ipfs := shell.NewShell(ipfsUploadUrl)
-//	fr := files.NewReaderFile(r)
-//	slf := files.NewSliceDirectory([]files.DirEntry{files.FileEntry("", fr)})
-//	fileReader := files.NewMultiFileReader(slf, true)
-//	ipfs.Add()
-//	fileData := make(map[string]interface{})
-//	rb := ipfs.Request("add")
-//	err := rb.Body(fileReader).Exec(context.Background(), &fileData)
-//	if err != nil {
-//		return "", 0, err
-//	}
-//
-//	err = ipfs.FilesCp(context.Background(), "/ipfs/"+fileData["Hash"].(string), "/"+fileData["Name"].(string))
-//	if err != nil {
-//		return "", 0, err
-//	}
-//
-//	return strings.ReplaceAll(fileData["Hash"].(string), "\"", ""), fileData["Size"].(int64), nil
-//}
+import (
+	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/global"
+	shell "github.com/ipfs/go-ipfs-api"
+	files "github.com/ipfs/go-ipfs-files"
+	"io"
+	"net/http"
+)
+
+func NewClient(projectId, projectSecret string) *http.Client {
+	return &http.Client{
+		Transport: authTransport{
+			RoundTripper:  http.DefaultTransport,
+			ProjectId:     projectId,
+			ProjectSecret: projectSecret,
+		},
+	}
+}
+
+// authTransport decorates each request with a basic auth header.
+type authTransport struct {
+	http.RoundTripper
+	ProjectId     string
+	ProjectSecret string
+}
+
+func (t authTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	r.SetBasicAuth(t.ProjectId, t.ProjectSecret)
+	return t.RoundTripper.RoundTrip(r)
+}
+
+func UploadToIpfs(r io.ReadSeeker) (string, int64, error) {
+
+	ipfs := shell.NewShellWithClient(global.IPFS_UPLOAD_URL, NewClient(global.PROJECT_ID, global.PROJECT_SECRET))
+
+	fr := files.NewReaderFile(r)
+	resp, err := ipfs.Add(fr, shell.CidVersion(1), shell.Pin(true))
+	if err != nil {
+		return "", 0, err
+	}
+
+	return resp, 0, nil
+}
