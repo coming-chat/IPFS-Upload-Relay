@@ -5,4 +5,5 @@ var (
 	IPFS_UPLOAD_URL string
 	PROJECT_ID      string
 	PROJECT_SECRET  string
+	IPFS_GATEWAY    string
 )
