@@ -2,13 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"os"
+	"github.com/NaturalSelectionLabs/IPFS-Upload-Relay/global"
 )
 
 func AddGateway(cid string) string {
-	ipfsUrl, exist := os.LookupEnv("IPFS_URL")
-	if !exist {
-		panic("IPFS_URL is not exist")
-	}
-	return fmt.Sprintf(ipfsUrl, cid)
+	return fmt.Sprintf(global.IPFS_GATEWAY, cid)
 }
