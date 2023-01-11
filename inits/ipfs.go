@@ -24,6 +24,10 @@ func Ipfs() error {
 	if !exist {
 		return fmt.Errorf("env virable PROJECT_SECRET not found")
 	}
+	global.IPFS_GATEWAY, exist = os.LookupEnv("IPFS_GATEWAY")
+	if !exist {
+		return fmt.Errorf("env virable IPFS_GATEWAY not found")
+	}
 
 	return nil
 }
