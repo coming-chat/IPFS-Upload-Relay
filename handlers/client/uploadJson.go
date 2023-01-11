@@ -25,7 +25,7 @@ func UploadJson(ctx *gin.Context) {
 
 	log.Print("Uploading file to IPFS...")
 	// UploadFile file to IPFS
-	cid, fSize, err := utils.UploadToIpfs(bytes.NewReader(b))
+	cid, fSize, err := utils.UploadToAwsS3(bytes.NewReader(b))
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())
 		log.Print(errMsg)
