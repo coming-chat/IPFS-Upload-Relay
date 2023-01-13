@@ -31,7 +31,7 @@ func awsS3prepare() (*s3.S3, error) {
 	return s3.New(awsS3Session), nil
 }
 
-func UploadToAwsS3(r io.ReadSeeker) (string, int64, error) {
+func UploadToAwsS3(r io.ReadSeeker, contentType string) (string, int64, error) {
 
 	// RandKey: file content hash
 	fileData, err := io.ReadAll(r)
@@ -66,9 +66,10 @@ func UploadToAwsS3(r io.ReadSeeker) (string, int64, error) {
 		case "NotFound":
 			// Upload file
 			_, err := svc.PutObject(&s3.PutObjectInput{
-				Body:   r,
-				Bucket: &global.AwsS3_Bucket,
-				Key:    aws.String(cid),
+				Body:        r,
+				Bucket:      &global.AwsS3_Bucket,
+				Key:         aws.String(cid),
+				ContentType: &contentType,
 			})
 			if err != nil {
 				return "", 0, err
