@@ -179,7 +179,7 @@ func startNewVideoUploadJob(videoUrl string) {
 
 	log.Print("Uploading file to IPFS...")
 	// UploadFile file to IPFS
-	cid, fSize, err := utils.UploadToAwsS3(tmpFileR)
+	cid, fSize, err := utils.UploadToAwsS3(tmpFileR, "")
 	_ = tmpFileR.Close() // Close opened file
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to upload file to IPFS with error: %s", err.Error())

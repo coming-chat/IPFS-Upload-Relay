@@ -64,13 +64,28 @@ func UploadFile(ctx *gin.Context) {
 		})
 		return
 	}
+	contentType, ok := file.Header["Content-Type"]
+	if !ok || len(contentType) == 0 {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"status": "error",
+			"error":  "unknown Content-Type",
+		})
+		return
+	}
+	ct := ""
+	for i, v := range contentType {
+		if i != 0 {
+			ct += "; "
+		}
+		ct += v
+	}
 	_, _ = f.Seek(0, io.SeekStart)
 	go func() {
 		cidIpfs, _, err1 = utils.UploadToIpfs(bytes.NewReader(fileBuf))
 		wg.Done()
 	}()
 	go func() {
-		cid, fSize, err2 = utils.UploadToAwsS3(f)
+		cid, fSize, err2 = utils.UploadToAwsS3(f, ct)
 		wg.Done()
 	}()
 
